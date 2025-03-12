@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "lillib",
+  "version": "${version}",
+  "name": "lil-lib",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/lillib/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "net.lilfox.lillib.client.LilLibClient"
+    ]
+  },
+  "mixins": [
+    "lillib.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
