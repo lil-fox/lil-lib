@@ -4,6 +4,9 @@
   "package": "net.lilfox.lillib.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "magiclibfix.WidgetConfigOptionAccessor",
+    "magiclibfix.WidgetConfigOptionInvoker",
+    "magiclibfix.WidgetConfigOptionMixin"
   ],
   "client": [
   ],
