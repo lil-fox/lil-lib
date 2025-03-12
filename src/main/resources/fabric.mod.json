@@ -12,6 +12,9 @@
   "entrypoints": {
     "client": [
       "net.lilfox.lillib.client.LilLibClient"
+    ],
+    "main": [
+      "net.lilfox.lillib.LilLib"
     ]
   },
   "mixins": [
