@@ -45,7 +45,7 @@ dependencies {
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modImplementation "top.hendrixshen.magiclib:magiclib-all-${project.magiclib_minecraft_version}-fabric:${project.magiclib_version}"
+    compileOnly "top.hendrixshen.magiclib:magiclib-all-${project.magiclib_minecraft_version}-fabric:${project.magiclib_version}"
 }
 
 processResources {
