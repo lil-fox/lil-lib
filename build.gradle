@@ -97,6 +97,7 @@ publishing {
             groupId = group
             artifactId = base.archivesName.get()
             version = version
+            from components.java
         }
     }
 
