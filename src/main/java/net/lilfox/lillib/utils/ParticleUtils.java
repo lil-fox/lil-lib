@@ -20,7 +20,7 @@ public class ParticleUtils {
                                       LivingEntity target,
                                       int count, double x, double y, double z, double velocityX, double velocityY, double velocityZ) {
         for (int i = 0; i < count; i++) {
-            target.getWorld().addParticle(PARTICLE_KEYS.get(particleKey),
+            target.getWorld().addParticleClient(PARTICLE_KEYS.get(particleKey),
                     target.getParticleX(x), target.getRandomBodyY() + y, target.getParticleZ(z), velocityX, velocityY, velocityZ);
         }
     }
