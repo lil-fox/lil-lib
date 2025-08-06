@@ -23,7 +23,7 @@ public abstract class LivingEntityMixin {
                         ((LivingEntity) (Object) this).getWorld().addParticleClient(ParticleTypes.CHERRY_LEAVES, ((LivingEntity) (Object) this).getParticleX(3), ((LivingEntity) (Object) this).getRandomBodyY(), ((LivingEntity) (Object) this).getParticleZ(3), -1.0, -1.0, -1.0);
                     }else if (!((PlayerEntity) (Object) this).isSneaking()) {
                         ParticleUtils.addParticleSet("cherry",
-                                ((PlayerEntity) (Object) this), 16, 0.5, 0 , 0.5 , 0, 0 ,0);
+                                ((PlayerEntity) (Object) this), 8, 0.5, 0 , 0.5 , 0, 0 ,0);
 
 
                     }
