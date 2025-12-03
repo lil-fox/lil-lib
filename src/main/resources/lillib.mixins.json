@@ -10,6 +10,9 @@
     "magiclibfix.WidgetConfigOptionMixin"
   ],
   "client": [
+    "PlayerEntityRendererMixin",
+    "TCape",
+    "TElytra"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -29,7 +29,7 @@ public abstract class WidgetConfigOptionMixin extends WidgetConfigOptionBase<Gui
             at = {@At("HEAD")},
             cancellable = true
     )
-    private void deleteIdioticTriggerButtonFromMagicLibNew(int x, int y, int configWidth, String configName, IHotkey hotkey, CallbackInfo ci) {
+    private void deleteTriggerButtonFromMagicLibNew(int x, int y, int configWidth, String configName, IHotkey hotkey, CallbackInfo ci) {
         configWidth -= 22;
         IKeybind keybind = hotkey.getKeybind();
         ConfigButtonKeybind keybindButton = new ConfigButtonKeybind(x, y, configWidth, 20, keybind, ((WidgetConfigOptionAccessor)this).getHost());

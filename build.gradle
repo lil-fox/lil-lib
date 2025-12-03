@@ -1,11 +1,11 @@
 plugins {
-    id 'fabric-loom' version '1.11-SNAPSHOT'
+    id 'fabric-loom' version '1.13-SNAPSHOT'
     id 'maven-publish'
 }
 
 apply plugin : 'maven-publish'
 
-version = project.mod_version
+version = project.minecraft_version + "-" + project.mod_version
 group = project.maven_group
 
 base {
@@ -34,6 +34,8 @@ repositories {
         }
     }
 
+    mavenCentral()
+
     maven { url "https://jitpack.io" }
 }
 
@@ -45,8 +47,7 @@ dependencies {
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modImplementation "top.hendrixshen.magiclib:magiclib-all-${project.magiclib_minecraft_version}-fabric:${project.magiclib_version}"
-    //modImplementation "com.github.Hendrix-Shen:MagicLib:feature~mc-1.21.5-SNAPSHOT"
+    modApi include("top.hendrixshen.magiclib:magiclib-all-${project.magiclib_minecraft_version}-fabric:${project.magiclib_version}")
 }
 
 processResources {
@@ -91,14 +92,35 @@ jar {
     }
 }
 
+Properties properties = new Properties()
+def propertiesFile = project.rootProject.file("local.properties")
+if(propertiesFile.exists())
+    properties.load(propertiesFile.newDataInputStream())
+
+def localRepsyUsername = properties.getProperty("REPSY_USERNAME")
+def localRepsyToken = properties.getProperty("REPSY_TOKEN")
+
+
+def repsyUsername = localRepsyUsername != null ? localRepsyUsername : System.getenv().REPSY_USERNAME
+def repsyToken = localRepsyToken != null ? localRepsyToken : System.getenv().REPSY_TOKEN
+
 // configure the maven publication
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = group
-            artifactId = base.archivesName.get()
-            version = version
+
             from components.java
+            pom {
+                name.set("lil-lib")
+                description.set("MagicLib addition lib for my mods")
+                developers {
+                    developer {
+                        id.set("lil_fox")
+                        name.set("lil_fox")
+                        email.set("qute.lil.fox@gmail.com")
+                    }
+                }
+            }
         }
     }
 
@@ -108,5 +130,14 @@ publishing {
         // Notice: This block does NOT have the same function as the block in the top level.
         // The repositories here will be used for publishing your artifact, not for
         // retrieving dependencies.
+        maven {
+            name = "repsy"
+            url = uri("https://repo.repsy.io/mvn/lil_fox/${project.repsy_id}")
+            credentials {
+                username = repsyUsername
+                password = repsyToken
+            }
+        }
+
     }
 }
