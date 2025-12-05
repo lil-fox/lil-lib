@@ -15,6 +15,9 @@
     ],
     "main": [
       "net.lilfox.lillib.LilLib"
+    ],
+    "modmenu": [
+      "net.lilfox.lillib.test.ModMenuIntegration"
     ]
   },
   "mixins": [

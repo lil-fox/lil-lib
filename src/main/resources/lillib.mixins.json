@@ -10,6 +10,7 @@
     "magiclibfix.WidgetConfigOptionMixin"
   ],
   "client": [
+    "FakeEffectFrameMixin",
     "PlayerEntityRendererMixin",
     "TCape",
     "TElytra"

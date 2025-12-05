@@ -45,12 +45,12 @@ public class PlayerEntityRendererMixin<AvatarlikeEntity extends PlayerLikeEntity
             }
         }
 
-        if(playerLikeEntity instanceof AbstractClientPlayerEntity player
-                && "fantom".equals(player.getGameProfile().name().toLowerCase())){
-            Text original = playerEntityRenderState.displayName;
-            if(original != null){
-                playerEntityRenderState.displayName = original.copy().styled(style -> style.withObfuscated(true));
-            }
-        }
+//        if(playerLikeEntity instanceof AbstractClientPlayerEntity player
+//                && "fantom".equals(player.getGameProfile().name().toLowerCase())){
+//            Text original = playerEntityRenderState.displayName;
+//            if(original != null){
+//                playerEntityRenderState.displayName = original.copy().styled(style -> style.withObfuscated(true));
+//            }
+//        }
     }
 }
