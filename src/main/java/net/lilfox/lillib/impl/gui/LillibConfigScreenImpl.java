@@ -22,7 +22,10 @@ import java.util.*;
  * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
  *
- * <p><b>Fixed version:</b> Tab buttons now properly display text for all tabs
+ * <p><b>Layout fixed version:</b>
+ * - Tabs aligned left with margin
+ * - Config names displayed on left
+ * - Proper button spacing
  *
  * @author lilfox
  * @since 1.0.0
@@ -38,6 +41,12 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
     private final int entryHeight = 24;
     private final int listTop = 60;
     private int listHeight;
+
+    // Layout constants
+    private static final int LEFT_MARGIN = 10;
+    private static final int TAB_WIDTH = 100;
+    private static final int TAB_HEIGHT = 20;
+    private static final int TAB_SPACING = 2;
 
     /**
      * Creates a new configuration screen implementation.
@@ -69,20 +78,20 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
         this.configWidgets.clear();
         this.tabButtons.clear();
 
-        // Create search bar
+        // Create search bar (top center)
         int searchWidth = 200;
         int searchX = (this.width - searchWidth) / 2;
         this.searchBar = new SearchBar(this.textRenderer, searchX, 10, searchWidth, 20);
         this.searchBar.setOnChangeCallback(this::rebuildConfigList);
         this.addDrawableChild(this.searchBar);
 
-        // Create category tabs
+        // Create category tabs (left-aligned with margin)
         createCategoryTabs();
 
         // Create config list
         rebuildConfigList();
 
-        // Create close button
+        // Create close button (bottom center)
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(LocalizationHelper.getLibTranslation("button.done")),
                 button -> this.close()
@@ -90,24 +99,18 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
     }
 
     /**
-     * Creates category tab buttons.
-     * <p>
-     * <b>Fixed:</b> Buttons now properly update their active state and display text correctly.
+     * Creates category tab buttons aligned to the left.
      */
     private void createCategoryTabs() {
         if (categoryNames.isEmpty()) {
             return;
         }
 
-        int tabWidth = 100;
-        int tabHeight = 20;
-        int tabSpacing = 5;
-        int totalWidth = (tabWidth + tabSpacing) * categoryNames.size() - tabSpacing;
-        int startX = (this.width - totalWidth) / 2;
+        int currentX = LEFT_MARGIN;
+        int tabY = 35;
 
         for (int i = 0; i < categoryNames.size(); i++) {
             String category = categoryNames.get(i);
-            int tabX = startX + i * (tabWidth + tabSpacing);
 
             // Create button with proper text
             Text buttonText = Text.literal(LocalizationHelper.getCategoryName(modId, category));
@@ -115,15 +118,18 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
             ButtonWidget tabButton = ButtonWidget.builder(
                     buttonText,
                     button -> selectCategory(category)
-            ).dimensions(tabX, 35, tabWidth, tabHeight).build();
+            ).dimensions(currentX, tabY, TAB_WIDTH, TAB_HEIGHT).build();
 
-            // Mark current category button as active
+            // Mark current category button as inactive (not clickable)
             if (category.equals(currentCategory)) {
                 tabButton.active = false;
             }
 
             this.tabButtons.add(tabButton);
             this.addDrawableChild(tabButton);
+
+            // Move to next tab position
+            currentX += TAB_WIDTH + TAB_SPACING;
         }
     }
 
@@ -154,7 +160,7 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
             ButtonWidget button = tabButtons.get(i);
             String category = categoryNames.get(i);
 
-            // Active button = not clickable (currently selected)
+            // Inactive button = selected (not clickable)
             button.active = !category.equals(currentCategory);
         }
     }
@@ -182,7 +188,7 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
             }
 
             ConfigEntryWidget widget = new ConfigEntryWidget(
-                    config, 10, yOffset, this.width - 20, entryHeight, this.textRenderer
+                    config, LEFT_MARGIN, yOffset, this.width - LEFT_MARGIN * 2, entryHeight, this.textRenderer
             );
             configWidgets.add(widget);
             yOffset += entryHeight;
@@ -191,14 +197,8 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Render title
+        // Render title (top center)
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, 0xFFFFFF);
-
-        // Render current category name above config list
-        if (currentCategory != null) {
-            String categoryDisplay = LocalizationHelper.getCategoryName(modId, currentCategory);
-            context.drawText(this.textRenderer, categoryDisplay, 15, listTop - 15, 0xFFFFFF, false);
-        }
 
         // Enable scissor for scrollable list
         int listBottom = listTop + listHeight;
@@ -217,7 +217,6 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
         context.disableScissor();
 
         // Render other widgets (search, buttons, tabs)
-        // This will render tab buttons with their proper text
         super.render(context, mouseX, mouseY, delta);
     }
 

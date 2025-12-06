@@ -25,6 +25,11 @@ import java.util.List;
  * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
  *
+ * <p><b>Layout fixed version:</b>
+ * - Config name displayed on left
+ * - Hotkey and eye buttons swapped
+ * - Proper button spacing with margins
+ *
  * @author lilfox
  * @since 1.0.0
  */
@@ -36,6 +41,11 @@ public class ConfigEntryWidget implements Drawable, Element {
     private final int height;
     private final List<ClickableWidget> widgets;
     private final TextRenderer textRenderer;
+
+    // Layout constants
+    private static final int BUTTON_HEIGHT = 20;
+    private static final int BUTTON_SPACING = 5;
+    private static final int NAME_WIDTH = 200;  // Space for config name on left
 
     /**
      * Creates a new config entry widget.
@@ -61,78 +71,96 @@ public class ConfigEntryWidget implements Drawable, Element {
 
     /**
      * Creates the appropriate widgets for this config type.
+     * <p>
+     * Layout from right to left:
+     * [Reset Button] [Hotkey Button] [Eye Button] [Value Widget] [Config Name]
      */
     private void createWidgets() {
-        int controlsX = x + width - 240; // Start controls from right side
-        int buttonWidth = 60;
-        int buttonHeight = 20;
-        int spacing = 5;
-        int currentX = controlsX;
+        // Start from the right side
+        int currentX = x + width;
 
-        // Reset button (always present)
+        // 1. Reset button (rightmost)
+        int resetWidth = 60;
+        currentX -= resetWidth;
         ButtonWidget resetButton = ButtonWidget.builder(
                 Text.literal(LocalizationHelper.getLibTranslation("button.reset")),
                 button -> config.resetToDefault()
-        ).dimensions(currentX + 180, y, buttonWidth, buttonHeight).build();
+        ).dimensions(currentX, y, resetWidth, BUTTON_HEIGHT).build();
         widgets.add(resetButton);
 
-        // Type-specific controls
+        currentX -= BUTTON_SPACING;
+
+        // Type-specific controls (right to left)
         if (config instanceof IConfigBooleanHotkeyed) {
             IConfigBooleanHotkeyed boolHotkeyConfig = (IConfigBooleanHotkeyed) config;
 
-            // Boolean button
-            ConfigBooleanWidget boolWidget = new ConfigBooleanWidget(
-                    currentX, y, buttonWidth, buttonHeight, boolHotkeyConfig
-            );
-            widgets.add(boolWidget);
-            currentX += buttonWidth + spacing;
-
-            // Effect toggle button (if has effect)
-            if (boolHotkeyConfig.hasEffect()) {
-                EffectToggleButton effectButton = new EffectToggleButton(
-                        currentX, y, 30, buttonHeight, boolHotkeyConfig
-                );
-                widgets.add(effectButton);
-                currentX += 30 + spacing;
-            }
-
-            // Hotkey button
+            // 2. Hotkey button
+            int hotkeyWidth = 80;
+            currentX -= hotkeyWidth;
             ConfigHotkeyWidget hotkeyWidget = new ConfigHotkeyWidget(
-                    currentX, y, 80, buttonHeight, boolHotkeyConfig
+                    currentX, y, hotkeyWidth, BUTTON_HEIGHT, boolHotkeyConfig
             );
             widgets.add(hotkeyWidget);
+            currentX -= BUTTON_SPACING;
+
+            // 3. Effect toggle button (eye) - if has effect
+            if (boolHotkeyConfig.hasEffect()) {
+                int eyeWidth = 30;
+                currentX -= eyeWidth;
+                EffectToggleButton effectButton = new EffectToggleButton(
+                        currentX, y, eyeWidth, BUTTON_HEIGHT, boolHotkeyConfig
+                );
+                widgets.add(effectButton);
+                currentX -= BUTTON_SPACING;
+            }
+
+            // 4. Boolean value button
+            int boolWidth = 60;
+            currentX -= boolWidth;
+            ConfigBooleanWidget boolWidget = new ConfigBooleanWidget(
+                    currentX, y, boolWidth, BUTTON_HEIGHT, boolHotkeyConfig
+            );
+            widgets.add(boolWidget);
 
         } else if (config instanceof IConfigBoolean) {
             IConfigBoolean boolConfig = (IConfigBoolean) config;
 
-            // Boolean button
-            ConfigBooleanWidget boolWidget = new ConfigBooleanWidget(
-                    currentX, y, buttonWidth, buttonHeight, boolConfig
-            );
-            widgets.add(boolWidget);
-            currentX += buttonWidth + spacing;
-
-            // Effect toggle button (if has effect)
+            // 2. Effect toggle button (eye) - if has effect
             if (boolConfig.hasEffect()) {
+                int eyeWidth = 30;
+                currentX -= eyeWidth;
                 EffectToggleButton effectButton = new EffectToggleButton(
-                        currentX, y, 30, buttonHeight, boolConfig
+                        currentX, y, eyeWidth, BUTTON_HEIGHT, boolConfig
                 );
                 widgets.add(effectButton);
+                currentX -= BUTTON_SPACING;
             }
+
+            // 3. Boolean value button
+            int boolWidth = 60;
+            currentX -= boolWidth;
+            ConfigBooleanWidget boolWidget = new ConfigBooleanWidget(
+                    currentX, y, boolWidth, BUTTON_HEIGHT, boolConfig
+            );
+            widgets.add(boolWidget);
 
         } else if (config instanceof IConfigInteger) {
             IConfigInteger intConfig = (IConfigInteger) config;
 
             if (intConfig.useSlider()) {
                 // Slider
+                int sliderWidth = 120;
+                currentX -= sliderWidth;
                 ConfigSliderWidget sliderWidget = new ConfigSliderWidget(
-                        currentX, y, 120, buttonHeight, intConfig
+                        currentX, y, sliderWidth, BUTTON_HEIGHT, intConfig
                 );
                 widgets.add(sliderWidget);
             } else {
                 // Text field
+                int fieldWidth = 80;
+                currentX -= fieldWidth;
                 TextFieldWidget textField = new TextFieldWidget(
-                        textRenderer, currentX, y, 80, buttonHeight, Text.empty()
+                        textRenderer, currentX, y, fieldWidth, BUTTON_HEIGHT, Text.empty()
                 );
                 textField.setMaxLength(10);
                 textField.setText(String.valueOf(intConfig.getIntegerValue()));
@@ -151,14 +179,18 @@ public class ConfigEntryWidget implements Drawable, Element {
 
             if (doubleConfig.useSlider()) {
                 // Slider
+                int sliderWidth = 120;
+                currentX -= sliderWidth;
                 ConfigSliderWidget sliderWidget = new ConfigSliderWidget(
-                        currentX, y, 120, buttonHeight, doubleConfig
+                        currentX, y, sliderWidth, BUTTON_HEIGHT, doubleConfig
                 );
                 widgets.add(sliderWidget);
             } else {
                 // Text field
+                int fieldWidth = 80;
+                currentX -= fieldWidth;
                 TextFieldWidget textField = new TextFieldWidget(
-                        textRenderer, currentX, y, 80, buttonHeight, Text.empty()
+                        textRenderer, currentX, y, fieldWidth, BUTTON_HEIGHT, Text.empty()
                 );
                 textField.setMaxLength(16);
                 textField.setText(String.valueOf(doubleConfig.getDoubleValue()));
@@ -176,8 +208,10 @@ public class ConfigEntryWidget implements Drawable, Element {
             IConfigString stringConfig = (IConfigString) config;
 
             // Text field
+            int fieldWidth = 120;
+            currentX -= fieldWidth;
             TextFieldWidget textField = new TextFieldWidget(
-                    textRenderer, currentX, y, 120, buttonHeight, Text.empty()
+                    textRenderer, currentX, y, fieldWidth, BUTTON_HEIGHT, Text.empty()
             );
             textField.setMaxLength(256);
             textField.setText(stringConfig.getStringValue());
@@ -188,28 +222,26 @@ public class ConfigEntryWidget implements Drawable, Element {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Draw config name
+        // Draw config name on the left
         String displayName = config.getDisplayName();
-        context.drawText(textRenderer, displayName, x + 5, y + 5, 0xFFFFFF, false);
+        int nameY = y + (height - textRenderer.fontHeight) / 2;
+        context.drawText(textRenderer, displayName, x + 5, nameY, 0xFFFFFF, false);
 
-        // Draw modified indicator
+        // Draw modified indicator next to name
         if (config.isModified()) {
-            String modifiedText = "*";
-            context.drawText(textRenderer, modifiedText, x + 5 + textRenderer.getWidth(displayName) + 3, y + 5, 0xFFFF00, false);
+            int nameWidth = textRenderer.getWidth(displayName);
+            context.drawText(textRenderer, "*", x + 5 + nameWidth + 3, nameY, 0xFFFF00, false);
         }
 
-        // Render widgets
+        // Render widgets (buttons)
         for (ClickableWidget widget : widgets) {
             widget.render(context, mouseX, mouseY, delta);
         }
 
-        // Draw description tooltip
+        // Draw description tooltip on hover over name area
         String description = config.getDescription();
-        if (!description.isEmpty() && isMouseOver(mouseX, mouseY)) {
-            // Check if mouse is over the name area (not over buttons)
-            if (mouseX < x + width - 250) {
-                context.drawTooltip(textRenderer, Text.literal(description), mouseX, mouseY);
-            }
+        if (!description.isEmpty() && isMouseOverName(mouseX, mouseY)) {
+            context.drawTooltip(textRenderer, Text.literal(description), mouseX, mouseY);
         }
 
         // Draw hotkey conflict tooltip (if applicable and SHIFT is held)
@@ -229,7 +261,7 @@ public class ConfigEntryWidget implements Drawable, Element {
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
         for (Element widget : widgets) {
-            if (widget.mouseClicked(click,doubled)) {
+            if (widget.mouseClicked(click, doubled)) {
                 return true;
             }
         }
@@ -239,9 +271,7 @@ public class ConfigEntryWidget implements Drawable, Element {
     /**
      * Custom key pressed handler for compatibility.
      *
-     * @param keyCode The key code
-     * @param scanCode The scan code
-     * @param modifiers The modifiers
+     * @param input The key input
      * @return true if handled
      */
     @Override
@@ -259,6 +289,18 @@ public class ConfigEntryWidget implements Drawable, Element {
     @Override
     public boolean isMouseOver(double mouseX, double mouseY) {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
+    }
+
+    /**
+     * Checks if mouse is over the config name area (left side).
+     *
+     * @param mouseX Mouse X position
+     * @param mouseY Mouse Y position
+     * @return true if over name area
+     */
+    private boolean isMouseOverName(double mouseX, double mouseY) {
+        return mouseX >= x && mouseX < x + NAME_WIDTH &&
+                mouseY >= y && mouseY < y + height;
     }
 
     @Override

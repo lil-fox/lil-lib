@@ -9,18 +9,21 @@ import net.lilfox.lillib.impl.util.LocalizationHelper;
  * This class contains code adapted from malilib by maruohon.
  * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
- * 
+ *
+ * <p><b>Fixed version:</b> Category field is now mutable to allow ConfigParser
+ * to set it from @Config annotation.
+ *
  * @author lilfox
  * @since 1.0.0
  */
 public abstract class ConfigBase implements IConfigBase {
     protected final String name;
-    protected final String category;
+    protected String category;  // NOT final - can be overridden by ConfigParser
     protected String modId;
 
     /**
      * Creates a new configuration base.
-     * 
+     *
      * @param name The internal name of this configuration
      * @param category The category this configuration belongs to
      */
@@ -47,6 +50,18 @@ public abstract class ConfigBase implements IConfigBase {
     @Override
     public void setModId(String modId) {
         this.modId = modId;
+    }
+
+    /**
+     * Sets the category for this configuration.
+     * <p>
+     * This method is package-private and intended to be called only by ConfigParser
+     * when applying @Config annotation metadata.
+     *
+     * @param category The category to set
+     */
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     @Override

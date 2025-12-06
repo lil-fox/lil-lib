@@ -5,6 +5,7 @@ import net.lilfox.lillib.impl.config.ConfigFactory;
 import net.lilfox.lillib.impl.config.ConfigManager;
 import net.lilfox.lillib.impl.config.options.ConfigBoolean;
 import net.lilfox.lillib.impl.config.options.ConfigBooleanHotkeyed;
+import net.lilfox.lillib.impl.config.options.ConfigInteger;
 
 /**
  * Test configuration class for lillib.
@@ -29,7 +30,7 @@ public class Configs {
      * <p>
      * Default hotkey: U,C (press U then C)
      */
-    @Config(category = "general")
+    @Config(category = "test")
     public static final ConfigBooleanHotkeyed openGui =
             factory.createBooleanHotkeyed("openGui", "U,C");
 
@@ -38,8 +39,38 @@ public class Configs {
      * <p>
      * Default value: false
      */
-    @Config(category = "features")
+    @Config(category = "test")
     public static final ConfigBoolean coolFeature =
+            factory.createBoolean("coolFeature");
+    @Config(category = "test")
+    public static final ConfigBoolean coolFeature1 =
+            factory.createBoolean("coolFeature");
+    @Config(category = "test")
+    public static final ConfigBoolean coolFeature2 =
+            factory.createBoolean("coolFeature");
+    @Config(category = "test")
+    public static final ConfigBoolean coolFeature3 =
+            factory.createBoolean("coolFeature");
+    @Config(category = "test")
+    public static final ConfigBoolean coolFeature4 =
+            factory.createBoolean("coolFeature");
+    @Config(category = "test")
+    public static final ConfigBoolean coolFeature5 =
+            factory.createBoolean("coolFeature");
+    @Config(category = "test")
+    public static final ConfigBoolean coolFeature6 =
+            factory.createBoolean("coolFeature");
+    @Config(category = "test")
+    public static final ConfigBoolean coolFeature7 =
+            factory.createBoolean("coolFeature");
+    @Config(category = "test")
+    public static final ConfigBoolean coolFeature8 =
+            factory.createBoolean("coolFeature");
+    @Config(category = "test")
+    public static final ConfigBoolean coolFeature9 =
+            factory.createBoolean("coolFeature");
+    @Config(category = "test")
+    public static final ConfigBoolean coolFeature10 =
             factory.createBoolean("coolFeature");
 
     /**
@@ -50,6 +81,10 @@ public class Configs {
     @Config(category = "features")
     public static final ConfigBooleanHotkeyed coolFeatureHot =
             factory.createBooleanHotkeyed("coolFeatureHot");
+
+    @Config(category = "features")
+    public static final ConfigInteger testInt =
+            factory.createInteger("coolFeatureHot",1,1,10,true);
 
     /**
      * Initializes the configuration system.

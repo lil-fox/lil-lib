@@ -2,6 +2,7 @@ package net.lilfox.lillib.impl.config;
 
 import net.lilfox.lillib.api.annotation.Config;
 import net.lilfox.lillib.api.config.IConfigBase;
+import net.lilfox.lillib.impl.config.options.ConfigBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,26 +18,7 @@ import java.util.List;
  * rather than creating them from annotated primitive fields. It extracts metadata from
  * the {@link Config} annotation and applies it to the config objects.
  *
- * <p>Key differences from the old approach:
- * <ul>
- *   <li>Parses {@code static final} fields of type {@link IConfigBase}</li>
- *   <li>Configs are created by developer via ConfigFactory before parsing</li>
- *   <li>Parser only extracts and applies metadata from @Config annotation</li>
- *   <li>No reflection-based object creation</li>
- * </ul>
- *
- * <p>Example usage:
- * <pre>{@code
- * public class Configs {
- *     private static final ConfigFactory factory = new ConfigFactory("mymod");
- *
- *     @Config(category = "general")
- *     public static final ConfigBoolean feature = factory.createBoolean("feature");
- * }
- *
- * // Parser extracts the ConfigBoolean object and sets its category to "general"
- * List<IConfigBase> configs = ConfigParser.parseConfigClass(Configs.class, "mymod");
- * }</pre>
+ * <p><b>Simplified version:</b> Uses ConfigBase.setCategory() method
  *
  * @author lilfox
  * @since 1.0.0
@@ -53,14 +35,6 @@ public class ConfigParser {
      *   <li>Have the {@link Config} annotation</li>
      * </ul>
      *
-     * <p>For each found field:
-     * <ul>
-     *   <li>Extracts the config object</li>
-     *   <li>Applies category from @Config annotation</li>
-     *   <li>Sets modId if not already set</li>
-     *   <li>Adds to the returned list</li>
-     * </ul>
-     *
      * @param configClass The class containing @Config annotated config fields
      * @param modId The mod ID to assign to configurations
      * @return List of parsed configuration instances
@@ -68,7 +42,7 @@ public class ConfigParser {
     public static List<IConfigBase> parseConfigClass(Class<?> configClass, String modId) {
         List<IConfigBase> configs = new ArrayList<>();
 
-        LOGGER.debug("Parsing config class: {} for mod: {}", configClass.getName(), modId);
+        LOGGER.info("Parsing config class: {} for mod: {}", configClass.getName(), modId);
 
         for (Field field : configClass.getDeclaredFields()) {
             // Only process static final fields
@@ -102,8 +76,8 @@ public class ConfigParser {
 
                 configs.add(config);
 
-                LOGGER.debug("Parsed config: name={}, type={}, category={}",
-                        config.getName(), config.getClass().getSimpleName(), category);
+                LOGGER.info("Parsed config: name='{}', type={}, category='{}'",
+                        config.getName(), config.getClass().getSimpleName(), config.getCategory());
 
             } catch (Exception e) {
                 LOGGER.error("Failed to parse config field: {}", field.getName(), e);
@@ -118,8 +92,6 @@ public class ConfigParser {
      * Applies metadata from the @Config annotation to a config object.
      * <p>
      * This method sets the category and ensures the modId is set.
-     * The category from the config object's internal field is overwritten
-     * with the value from the annotation.
      *
      * @param config The configuration object
      * @param category The category from @Config annotation
@@ -129,27 +101,21 @@ public class ConfigParser {
         // Set modId if not already set
         if (config.getModId() == null) {
             config.setModId(modId);
+            LOGGER.debug("Set modId '{}' for config '{}'", modId, config.getName());
         }
 
-        // Override category with annotation value
-        // We need to access the internal category field
-        try {
-            Field categoryField = config.getClass().getSuperclass().getDeclaredField("category");
-            categoryField.setAccessible(true);
-            categoryField.set(config, category);
-        } catch (Exception e) {
-            LOGGER.warn("Failed to set category for config '{}': {}", config.getName(), e.getMessage());
+        // Set category using the package-private setCategory method
+        if (config instanceof ConfigBase) {
+            ConfigBase configBase = (ConfigBase) config;
+            configBase.setCategory(category);
+            LOGGER.debug("Set category '{}' for config '{}'", category, config.getName());
+        } else {
+            LOGGER.warn("Config '{}' is not a ConfigBase instance, cannot set category", config.getName());
         }
     }
 
     /**
      * Validates that a config class follows the required structure.
-     * <p>
-     * Checks:
-     * <ul>
-     *   <li>Has at least one @Config annotated field</li>
-     *   <li>All @Config fields are static final IConfigBase</li>
-     * </ul>
      *
      * @param configClass The class to validate
      * @return true if valid, false otherwise
@@ -182,6 +148,12 @@ public class ConfigParser {
                 LOGGER.error("Config field '{}' must be an IConfigBase type, found: {}",
                         field.getName(), field.getType().getName());
                 allValid = false;
+            }
+
+            // Check if it extends ConfigBase
+            if (!ConfigBase.class.isAssignableFrom(field.getType())) {
+                LOGGER.warn("Config field '{}' does not extend ConfigBase, category might not be set correctly",
+                        field.getName());
             }
         }
 
