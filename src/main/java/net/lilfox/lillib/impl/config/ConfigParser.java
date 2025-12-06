@@ -1,10 +1,7 @@
 package net.lilfox.lillib.impl.config;
 
 import net.lilfox.lillib.api.annotation.Config;
-import net.lilfox.lillib.api.annotation.Hotkey;
-import net.lilfox.lillib.api.annotation.Numeric;
 import net.lilfox.lillib.api.config.IConfigBase;
-import net.lilfox.lillib.impl.config.options.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,8 +11,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Parses configuration classes with annotations and creates config instances.
- * 
+ * Parses configuration classes and extracts config objects with their annotations.
+ * <p>
+ * This parser operates on pre-created config objects (created via {@link ConfigFactory})
+ * rather than creating them from annotated primitive fields. It extracts metadata from
+ * the {@link Config} annotation and applies it to the config objects.
+ *
+ * <p>Key differences from the old approach:
+ * <ul>
+ *   <li>Parses {@code static final} fields of type {@link IConfigBase}</li>
+ *   <li>Configs are created by developer via ConfigFactory before parsing</li>
+ *   <li>Parser only extracts and applies metadata from @Config annotation</li>
+ *   <li>No reflection-based object creation</li>
+ * </ul>
+ *
+ * <p>Example usage:
+ * <pre>{@code
+ * public class Configs {
+ *     private static final ConfigFactory factory = new ConfigFactory("mymod");
+ *
+ *     @Config(category = "general")
+ *     public static final ConfigBoolean feature = factory.createBoolean("feature");
+ * }
+ *
+ * // Parser extracts the ConfigBoolean object and sets its category to "general"
+ * List<IConfigBase> configs = ConfigParser.parseConfigClass(Configs.class, "mymod");
+ * }</pre>
+ *
  * @author lilfox
  * @since 1.0.0
  */
@@ -23,18 +45,35 @@ public class ConfigParser {
     private static final Logger LOGGER = LoggerFactory.getLogger("lillib");
 
     /**
-     * Parses a configuration class and extracts all annotated fields.
-     * 
-     * @param configClass The class containing @Config annotated fields
+     * Parses a configuration class and extracts all annotated config objects.
+     * <p>
+     * This method scans for {@code static final} fields that:
+     * <ul>
+     *   <li>Are of type {@link IConfigBase}</li>
+     *   <li>Have the {@link Config} annotation</li>
+     * </ul>
+     *
+     * <p>For each found field:
+     * <ul>
+     *   <li>Extracts the config object</li>
+     *   <li>Applies category from @Config annotation</li>
+     *   <li>Sets modId if not already set</li>
+     *   <li>Adds to the returned list</li>
+     * </ul>
+     *
+     * @param configClass The class containing @Config annotated config fields
      * @param modId The mod ID to assign to configurations
      * @return List of parsed configuration instances
      */
     public static List<IConfigBase> parseConfigClass(Class<?> configClass, String modId) {
         List<IConfigBase> configs = new ArrayList<>();
 
+        LOGGER.debug("Parsing config class: {} for mod: {}", configClass.getName(), modId);
+
         for (Field field : configClass.getDeclaredFields()) {
-            // Skip non-static fields
-            if (!Modifier.isStatic(field.getModifiers())) {
+            // Only process static final fields
+            int modifiers = field.getModifiers();
+            if (!Modifier.isStatic(modifiers) || !Modifier.isFinal(modifiers)) {
                 continue;
             }
 
@@ -46,111 +85,111 @@ public class ConfigParser {
 
             try {
                 field.setAccessible(true);
-                IConfigBase config = parseField(field, configAnnotation, modId);
-                
-                if (config != null) {
-                    configs.add(config);
-                    
-                    // Replace field value with config instance for hotkeyed configs
-                    if (config instanceof ConfigBooleanHotkeyed) {
-                        // For hotkeyed configs, we keep the field as-is but register separately
-                        // This allows both field.getBooleanValue() and direct boolean access
-                    }
+                Object fieldValue = field.get(null);
+
+                // Field must be a config object
+                if (!(fieldValue instanceof IConfigBase)) {
+                    LOGGER.warn("Field '{}' has @Config annotation but is not an IConfigBase instance: {}",
+                            field.getName(), fieldValue.getClass().getName());
+                    continue;
                 }
+
+                IConfigBase config = (IConfigBase) fieldValue;
+
+                // Apply metadata from annotation
+                String category = configAnnotation.category();
+                applyMetadata(config, category, modId);
+
+                configs.add(config);
+
+                LOGGER.debug("Parsed config: name={}, type={}, category={}",
+                        config.getName(), config.getClass().getSimpleName(), category);
+
             } catch (Exception e) {
-                LOGGER.error("Failed to parse config field: " + field.getName(), e);
+                LOGGER.error("Failed to parse config field: {}", field.getName(), e);
             }
         }
 
+        LOGGER.info("Successfully parsed {} config(s) from class: {}", configs.size(), configClass.getSimpleName());
         return configs;
     }
 
     /**
-     * Parses a single field and creates the appropriate config instance.
-     * 
-     * @param field The field to parse
-     * @param configAnnotation The @Config annotation
-     * @param modId The mod ID
-     * @return The created config instance, or null if parsing failed
-     * @throws IllegalAccessException if field access fails
+     * Applies metadata from the @Config annotation to a config object.
+     * <p>
+     * This method sets the category and ensures the modId is set.
+     * The category from the config object's internal field is overwritten
+     * with the value from the annotation.
+     *
+     * @param config The configuration object
+     * @param category The category from @Config annotation
+     * @param modId The mod ID to assign
      */
-    private static IConfigBase parseField(Field field, Config configAnnotation, String modId) throws IllegalAccessException {
-        String name = field.getName();
-        String category = configAnnotation.category();
-        Class<?> fieldType = field.getType();
-
-        // Check for @Hotkey annotation
-        Hotkey hotkeyAnnotation = field.getAnnotation(Hotkey.class);
-        
-        // Check for @Numeric annotation
-        Numeric numericAnnotation = field.getAnnotation(Numeric.class);
-
-        IConfigBase config = null;
-
-        // Parse boolean fields
-        if (fieldType == boolean.class || fieldType == Boolean.class) {
-            boolean defaultValue = field.getBoolean(null);
-            
-            if (hotkeyAnnotation != null) {
-                String defaultHotkey = hotkeyAnnotation.hotkey();
-                config = new ConfigBooleanHotkeyed(name, category, defaultValue, defaultHotkey);
-            } else {
-                config = new ConfigBoolean(name, category, defaultValue);
-            }
-        }
-        // Parse integer fields
-        else if (fieldType == int.class || fieldType == Integer.class) {
-            int defaultValue = field.getInt(null);
-            
-            if (numericAnnotation != null) {
-                int minValue = (int) numericAnnotation.minValue();
-                int maxValue = (int) numericAnnotation.maxValue();
-                boolean useSlider = numericAnnotation.useSlider();
-                config = new ConfigInteger(name, category, defaultValue, minValue, maxValue, useSlider);
-            } else {
-                config = new ConfigInteger(name, category, defaultValue, Integer.MIN_VALUE, Integer.MAX_VALUE);
-            }
-        }
-        // Parse double fields
-        else if (fieldType == double.class || fieldType == Double.class) {
-            double defaultValue = field.getDouble(null);
-            
-            if (numericAnnotation != null) {
-                double minValue = numericAnnotation.minValue();
-                double maxValue = numericAnnotation.maxValue();
-                boolean useSlider = numericAnnotation.useSlider();
-                config = new ConfigDouble(name, category, defaultValue, minValue, maxValue, useSlider);
-            } else {
-                config = new ConfigDouble(name, category, defaultValue, Double.MIN_VALUE, Double.MAX_VALUE);
-            }
-        }
-        // Parse float fields (treated as double)
-        else if (fieldType == float.class || fieldType == Float.class) {
-            double defaultValue = field.getFloat(null);
-            
-            if (numericAnnotation != null) {
-                double minValue = numericAnnotation.minValue();
-                double maxValue = numericAnnotation.maxValue();
-                boolean useSlider = numericAnnotation.useSlider();
-                config = new ConfigDouble(name, category, defaultValue, minValue, maxValue, useSlider);
-            } else {
-                config = new ConfigDouble(name, category, defaultValue, -Float.MAX_VALUE, Float.MAX_VALUE);
-            }
-        }
-        // Parse String fields
-        else if (fieldType == String.class) {
-            String defaultValue = (String) field.get(null);
-            config = new ConfigString(name, category, defaultValue);
-        }
-        else {
-            LOGGER.warn("Unsupported config field type: {} for field {}", fieldType.getName(), name);
-            return null;
-        }
-
-        if (config != null) {
+    private static void applyMetadata(IConfigBase config, String category, String modId) {
+        // Set modId if not already set
+        if (config.getModId() == null) {
             config.setModId(modId);
         }
 
-        return config;
+        // Override category with annotation value
+        // We need to access the internal category field
+        try {
+            Field categoryField = config.getClass().getSuperclass().getDeclaredField("category");
+            categoryField.setAccessible(true);
+            categoryField.set(config, category);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to set category for config '{}': {}", config.getName(), e.getMessage());
+        }
+    }
+
+    /**
+     * Validates that a config class follows the required structure.
+     * <p>
+     * Checks:
+     * <ul>
+     *   <li>Has at least one @Config annotated field</li>
+     *   <li>All @Config fields are static final IConfigBase</li>
+     * </ul>
+     *
+     * @param configClass The class to validate
+     * @return true if valid, false otherwise
+     */
+    public static boolean validateConfigClass(Class<?> configClass) {
+        boolean hasConfigs = false;
+        boolean allValid = true;
+
+        for (Field field : configClass.getDeclaredFields()) {
+            Config configAnnotation = field.getAnnotation(Config.class);
+            if (configAnnotation == null) {
+                continue;
+            }
+
+            hasConfigs = true;
+
+            // Check modifiers
+            int modifiers = field.getModifiers();
+            if (!Modifier.isStatic(modifiers)) {
+                LOGGER.error("Config field '{}' must be static", field.getName());
+                allValid = false;
+            }
+            if (!Modifier.isFinal(modifiers)) {
+                LOGGER.error("Config field '{}' must be final", field.getName());
+                allValid = false;
+            }
+
+            // Check type
+            if (!IConfigBase.class.isAssignableFrom(field.getType())) {
+                LOGGER.error("Config field '{}' must be an IConfigBase type, found: {}",
+                        field.getName(), field.getType().getName());
+                allValid = false;
+            }
+        }
+
+        if (!hasConfigs) {
+            LOGGER.warn("Config class '{}' has no @Config annotated fields", configClass.getName());
+            return false;
+        }
+
+        return allValid;
     }
 }

@@ -2,6 +2,7 @@ package net.lilfox.lillib.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.lilfox.lillib.impl.hotkey.HotkeyHandler;
+import net.lilfox.lillib.impl.hotkey.KeybindManager;
 import net.lilfox.lillib.test.Configs;
 import net.lilfox.lillib.utils.ParticleUtils;
 
@@ -11,6 +12,7 @@ public class LilLibClient implements ClientModInitializer {
     public void onInitializeClient() {
 
         Configs.init();
+        KeybindManager.getInstance().debugPrint();
         //ConfigInitializer.init();
         HotkeyHandler.init();
         ParticleUtils.init();

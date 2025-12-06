@@ -9,7 +9,11 @@ import net.lilfox.lillib.api.config.IConfigInteger;
  * This class contains code adapted from malilib by maruohon.
  * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
- * 
+ *
+ * <p><b>Updated for factory pattern:</b>
+ * Constructor now properly handles empty category for factory-created configs.
+ * Category can be overridden by ConfigParser when processing @Config annotations.
+ *
  * @author lilfox
  * @since 1.0.0
  */
@@ -23,9 +27,13 @@ public class ConfigInteger extends ConfigBase implements IConfigInteger {
 
     /**
      * Creates a new integer configuration.
-     * 
+     * <p>
+     * When created via {@link net.lilfox.lillib.impl.config.ConfigFactory},
+     * the category will be empty initially and set later by ConfigParser
+     * when processing the @Config annotation.
+     *
      * @param name The internal name
-     * @param category The category
+     * @param category The category (can be empty for factory-created configs)
      * @param defaultValue The default value
      * @param minValue The minimum allowed value
      * @param maxValue The maximum allowed value
@@ -42,9 +50,9 @@ public class ConfigInteger extends ConfigBase implements IConfigInteger {
 
     /**
      * Creates a new integer configuration without slider.
-     * 
+     *
      * @param name The internal name
-     * @param category The category
+     * @param category The category (can be empty for factory-created configs)
      * @param defaultValue The default value
      * @param minValue The minimum allowed value
      * @param maxValue The maximum allowed value
@@ -62,7 +70,7 @@ public class ConfigInteger extends ConfigBase implements IConfigInteger {
     public void setIntegerValue(int value) {
         int oldValue = this.value;
         this.value = clampValue(value);
-        
+
         if (oldValue != this.value) {
             if (callback != null) {
                 callback.onValueChanged(this.value, oldValue);
@@ -108,7 +116,7 @@ public class ConfigInteger extends ConfigBase implements IConfigInteger {
 
     /**
      * Clamps a value to the allowed range.
-     * 
+     *
      * @param value The value to clamp
      * @return The clamped value
      */

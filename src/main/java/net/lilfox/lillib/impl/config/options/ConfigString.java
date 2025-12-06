@@ -9,7 +9,11 @@ import net.lilfox.lillib.api.config.IConfigString;
  * This class contains code adapted from malilib by maruohon.
  * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
- * 
+ *
+ * <p><b>Updated for factory pattern:</b>
+ * Constructor now properly handles empty category for factory-created configs.
+ * Category can be overridden by ConfigParser when processing @Config annotations.
+ *
  * @author lilfox
  * @since 1.0.0
  */
@@ -20,9 +24,13 @@ public class ConfigString extends ConfigBase implements IConfigString {
 
     /**
      * Creates a new string configuration.
-     * 
+     * <p>
+     * When created via {@link net.lilfox.lillib.impl.config.ConfigFactory},
+     * the category will be empty initially and set later by ConfigParser
+     * when processing the @Config annotation.
+     *
      * @param name The internal name
-     * @param category The category
+     * @param category The category (can be empty for factory-created configs)
      * @param defaultValue The default value
      */
     public ConfigString(String name, String category, String defaultValue) {
@@ -40,7 +48,7 @@ public class ConfigString extends ConfigBase implements IConfigString {
     public void setStringValue(String value) {
         String oldValue = this.value;
         this.value = value != null ? value : "";
-        
+
         if (!oldValue.equals(this.value)) {
             if (callback != null) {
                 callback.onValueChanged(this.value, oldValue);
