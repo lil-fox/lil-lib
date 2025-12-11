@@ -3,16 +3,13 @@ package net.lilfox.lillib.impl.gui.widgets;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.*;
-import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.lilfox.lillib.api.config.*;
 import net.lilfox.lillib.impl.util.LocalizationHelper;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +21,10 @@ import java.util.List;
  * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
  *
- * <p><b>Final fixed version:</b>
- * - Config name rendered outside scissor (always visible)
- * - Button order: [Value] [Hotkey] [Eye] [Reset]
- * - Proper spacing between all buttons
+ * <p><b>Simplified approach:</b>
+ * - Uses absolute coordinates
+ * - Scroll handled by parent via matrix transformation
+ * - Tooltips work automatically
  *
  * @author lilfox
  * @since 1.0.0
@@ -46,6 +43,16 @@ public class ConfigEntryWidget implements Drawable, Element {
     private static final int BUTTON_SPACING = 5;
     private static final int NAME_WIDTH = 200;
 
+    /**
+     * Creates a config entry widget.
+     *
+     * @param config The configuration to display
+     * @param x The X position
+     * @param y The Y position
+     * @param width The width
+     * @param height The height
+     * @param textRenderer The text renderer
+     */
     public ConfigEntryWidget(IConfigBase config, int x, int y, int width, int height, TextRenderer textRenderer) {
         this.config = config;
         this.x = x;
@@ -202,16 +209,22 @@ public class ConfigEntryWidget implements Drawable, Element {
 
     /**
      * Renders the config entry.
-     * Name is drawn separately to ensure it's always visible.
+     * <p>
+     * Parent applies scroll via matrix transformation, so we render at absolute coordinates.
+     *
+     * @param context The draw context (with scroll transformation already applied)
+     * @param mouseX The mouse X position
+     * @param mouseY The mouse Y position (adjusted for scroll by parent)
+     * @param delta The delta time
      */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Render widgets (buttons) first
+        // Render widgets (buttons)
         for (ClickableWidget widget : widgets) {
             widget.render(context, mouseX, mouseY, delta);
         }
 
-        // Draw config name on the left (AFTER widgets, so it's on top)
+        // Draw config name on the left
         String displayName = config.getDisplayName();
         int nameY = y + (height - textRenderer.fontHeight) / 2;
         context.drawText(textRenderer, displayName, x + 5, nameY, 0xFFFFFFFF, false);
@@ -242,13 +255,29 @@ public class ConfigEntryWidget implements Drawable, Element {
         }
     }
 
+    /**
+     * Handles mouse clicks.
+     * <p>
+     * Parent adjusts mouse position for scroll, so we check against absolute coordinates.
+     *
+     * @param click The click event (with Y adjusted for scroll by parent)
+     * @param doubled Whether this is a double click
+     * @return true if the click was handled
+     */
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
+        // Check if click is within widget bounds
+        if (!isMouseOver(click.x(), click.y())) {
+            return false;
+        }
+
+        // Check widgets
         for (Element widget : widgets) {
             if (widget.mouseClicked(click, doubled)) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -266,9 +295,17 @@ public class ConfigEntryWidget implements Drawable, Element {
 
     @Override
     public boolean isMouseOver(double mouseX, double mouseY) {
-        return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
+        return mouseX >= x && mouseX < x + width &&
+                mouseY >= y && mouseY < y + height;
     }
 
+    /**
+     * Checks if mouse is over the name area.
+     *
+     * @param mouseX The mouse X position
+     * @param mouseY The mouse Y position (adjusted for scroll)
+     * @return true if mouse is over the name area
+     */
     private boolean isMouseOverName(double mouseX, double mouseY) {
         return mouseX >= x && mouseX < x + NAME_WIDTH &&
                 mouseY >= y && mouseY < y + height;
@@ -283,10 +320,20 @@ public class ConfigEntryWidget implements Drawable, Element {
         return false;
     }
 
+    /**
+     * Gets the configuration associated with this widget.
+     *
+     * @return The configuration
+     */
     public IConfigBase getConfig() {
         return config;
     }
 
+    /**
+     * Checks if currently editing a hotkey.
+     *
+     * @return true if editing a hotkey
+     */
     public boolean isEditingHotkey() {
         for (ClickableWidget widget : widgets) {
             if (widget instanceof ConfigHotkeyWidget) {

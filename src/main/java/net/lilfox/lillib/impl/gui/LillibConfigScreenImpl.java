@@ -11,7 +11,6 @@ import net.lilfox.lillib.impl.config.ConfigManager;
 import net.lilfox.lillib.impl.gui.widgets.ConfigEntryWidget;
 import net.lilfox.lillib.impl.gui.widgets.SearchBar;
 import net.lilfox.lillib.impl.util.LocalizationHelper;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 
@@ -22,10 +21,10 @@ import java.util.*;
  * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
  *
- * <p><b>Layout fixed version:</b>
- * - Tabs aligned left with margin
- * - Config names displayed on left
- * - Proper button spacing
+ * <p><b>Matrix transformation approach:</b>
+ * - Uses DrawContext matrix transformation for scrolling
+ * - Widgets maintain absolute coordinates
+ * - Tooltips work automatically
  *
  * @author lilfox
  * @since 1.0.0
@@ -167,6 +166,9 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
 
     /**
      * Rebuilds the config list based on current category and search.
+     * <p>
+     * Widgets are created with absolute Y positions (starting from listTop).
+     * Scroll is applied via matrix transformation during rendering.
      */
     private void rebuildConfigList() {
         configWidgets.clear();
@@ -200,33 +202,45 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
         // Render title (top center)
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, 0xFFFFFFFF);
 
+        // Calculate adjusted mouse position for scrolled content
+        int adjustedMouseY = mouseY + scrollOffset;
+
         // Enable scissor for scrollable list
         int listBottom = listTop + listHeight;
         context.enableScissor(0, listTop, this.width, listBottom);
 
-        // Render config widgets with scroll offset
-        for (int i = 0; i < configWidgets.size(); i++) {
-            ConfigEntryWidget widget = configWidgets.get(i);
-            int widgetY = i * entryHeight + listTop - scrollOffset;
+        // Push matrix and apply scroll transformation
+        context.getMatrices().pushMatrix();
+        context.getMatrices().translate(0, -scrollOffset);
 
-            if (widgetY + entryHeight > listTop && widgetY < listBottom) {
-                widget.render(context, mouseX, mouseY, delta);
-            }
+        // Render config widgets with transformed matrix
+        for (ConfigEntryWidget widget : configWidgets) {
+            widget.render(context, mouseX, adjustedMouseY, delta);
         }
+
+        // Pop matrix to restore original transformation
+        context.getMatrices().popMatrix();
 
         context.disableScissor();
 
-        // Render other widgets (search, buttons, tabs)
+        // Render other widgets (search, buttons, tabs) - not affected by scroll
         super.render(context, mouseX, mouseY, delta);
     }
 
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
-        // Check config widgets with scroll adjustment
+        // Calculate adjusted mouse position for scrolled content
         double adjustedMouseY = click.y() + scrollOffset;
-        for (ConfigEntryWidget widget : configWidgets) {
-            if (widget.mouseClicked(new Click(click.x(), adjustedMouseY, click.buttonInfo()), doubled)) {
-                return true;
+
+        // Check if click is in list area
+        if (click.y() >= listTop && click.y() < listTop + listHeight) {
+            // Check config widgets with adjusted mouse position
+            Click adjustedClick = new Click(click.x(), adjustedMouseY, click.buttonInfo());
+
+            for (ConfigEntryWidget widget : configWidgets) {
+                if (widget.mouseClicked(adjustedClick, doubled)) {
+                    return true;
+                }
             }
         }
 
