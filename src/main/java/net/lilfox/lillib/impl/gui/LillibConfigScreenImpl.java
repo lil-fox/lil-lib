@@ -198,7 +198,7 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         // Render title (top center)
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, 0xFFFFFFFF);
 
         // Enable scissor for scrollable list
         int listBottom = listTop + listHeight;
