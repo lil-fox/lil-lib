@@ -21,10 +21,9 @@ import java.util.List;
  * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
  *
- * <p><b>Simplified approach:</b>
- * - Uses absolute coordinates
- * - Scroll handled by parent via matrix transformation
- * - Tooltips work automatically
+ * <p><b>Fixed version:</b>
+ * - Tooltips rendered separately at screen coordinates
+ * - Hotkey editing finished on any click
  *
  * @author lilfox
  * @since 1.0.0
@@ -37,6 +36,7 @@ public class ConfigEntryWidget implements Drawable, Element {
     private final int height;
     private final List<ClickableWidget> widgets;
     private final TextRenderer textRenderer;
+    private ConfigHotkeyWidget hotkeyWidget;
 
     // Layout constants
     private static final int BUTTON_HEIGHT = 20;
@@ -100,10 +100,10 @@ public class ConfigEntryWidget implements Drawable, Element {
             // 3. Hotkey button
             int hotkeyWidth = 80;
             currentX -= hotkeyWidth;
-            ConfigHotkeyWidget hotkeyWidget = new ConfigHotkeyWidget(
+            this.hotkeyWidget = new ConfigHotkeyWidget(
                     currentX, y, hotkeyWidth, BUTTON_HEIGHT, boolHotkeyConfig
             );
-            widgets.add(hotkeyWidget);
+            widgets.add(this.hotkeyWidget);
             currentX -= BUTTON_SPACING;
 
             // 4. Boolean value button
@@ -208,9 +208,10 @@ public class ConfigEntryWidget implements Drawable, Element {
     }
 
     /**
-     * Renders the config entry.
+     * Renders the config entry (without tooltips).
      * <p>
      * Parent applies scroll via matrix transformation, so we render at absolute coordinates.
+     * Tooltips are rendered separately via renderTooltip() after matrix pop.
      *
      * @param context The draw context (with scroll transformation already applied)
      * @param mouseX The mouse X position
@@ -234,22 +235,34 @@ public class ConfigEntryWidget implements Drawable, Element {
             int nameWidth = textRenderer.getWidth(displayName);
             context.drawText(textRenderer, "*", x + 5 + nameWidth + 3, nameY, 0xFFFFFF00, false);
         }
+    }
+
+    /**
+     * Renders tooltips at screen coordinates (called after matrix pop).
+     * <p>
+     * This is called by parent screen AFTER restoring matrix transformation,
+     * so tooltips appear at correct screen position.
+     *
+     * @param context The draw context (without scroll transformation)
+     * @param mouseX The real mouse X position
+     * @param mouseY The real mouse Y position
+     */
+    public void renderTooltip(DrawContext context, int mouseX, int mouseY) {
+        // Calculate adjusted Y for checking hover (account for scroll)
+        int adjustedMouseY = mouseY + (y - (int)context.getMatrices().peek().getPositionMatrix().getTranslationVector().y);
 
         // Draw description tooltip on hover over name area
         String description = config.getDescription();
-        if (!description.isEmpty() && isMouseOverName(mouseX, mouseY)) {
+        if (!description.isEmpty() && isMouseOverName(mouseX, adjustedMouseY)) {
             context.drawTooltip(textRenderer, Text.literal(description), mouseX, mouseY);
         }
 
         // Draw hotkey conflict tooltip (if applicable and SHIFT is held)
         if (config instanceof IConfigBooleanHotkeyed && MinecraftClient.getInstance().options.sneakKey.isPressed()) {
-            for (ClickableWidget widget : widgets) {
-                if (widget instanceof ConfigHotkeyWidget) {
-                    ConfigHotkeyWidget hotkeyWidget = (ConfigHotkeyWidget) widget;
-                    Text conflictTooltip = hotkeyWidget.getConflictTooltip();
-                    if (conflictTooltip != null && widget.isMouseOver(mouseX, mouseY)) {
-                        context.drawTooltip(textRenderer, conflictTooltip, mouseX, mouseY);
-                    }
+            if (hotkeyWidget != null) {
+                Text conflictTooltip = hotkeyWidget.getConflictTooltip();
+                if (conflictTooltip != null && hotkeyWidget.isMouseOver(mouseX, adjustedMouseY)) {
+                    context.drawTooltip(textRenderer, conflictTooltip, mouseX, mouseY);
                 }
             }
         }
@@ -283,12 +296,8 @@ public class ConfigEntryWidget implements Drawable, Element {
 
     @Override
     public boolean keyPressed(KeyInput input) {
-        for (ClickableWidget widget : widgets) {
-            if (widget instanceof ConfigHotkeyWidget hotkeyWidget) {
-                if (hotkeyWidget.keyPressed(input)) {
-                    return true;
-                }
-            }
+        if (hotkeyWidget != null && hotkeyWidget.isEditing()) {
+            return hotkeyWidget.keyPressed(input);
         }
         return false;
     }
@@ -335,13 +344,15 @@ public class ConfigEntryWidget implements Drawable, Element {
      * @return true if editing a hotkey
      */
     public boolean isEditingHotkey() {
-        for (ClickableWidget widget : widgets) {
-            if (widget instanceof ConfigHotkeyWidget) {
-                if (((ConfigHotkeyWidget) widget).isEditing()) {
-                    return true;
-                }
-            }
+        return hotkeyWidget != null && hotkeyWidget.isEditing();
+    }
+
+    /**
+     * Finishes hotkey editing (called when clicking anywhere).
+     */
+    public void finishHotkeyEdit() {
+        if (hotkeyWidget != null && hotkeyWidget.isEditing()) {
+            hotkeyWidget.finishEditing(true);
         }
-        return false;
     }
 }

@@ -24,7 +24,7 @@ import java.util.*;
  * <p><b>Matrix transformation approach:</b>
  * - Uses DrawContext matrix transformation for scrolling
  * - Widgets maintain absolute coordinates
- * - Tooltips work automatically
+ * - Tooltips rendered after matrix pop for correct positioning
  *
  * @author lilfox
  * @since 1.0.0
@@ -40,6 +40,7 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
     private final int entryHeight = 24;
     private final int listTop = 60;
     private int listHeight;
+    private ConfigEntryWidget hoveredWidget;
 
     // Layout constants
     private static final int LEFT_MARGIN = 10;
@@ -213,9 +214,17 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
         context.getMatrices().pushMatrix();
         context.getMatrices().translate(0, -scrollOffset);
 
+        // Track hovered widget for tooltip rendering
+        this.hoveredWidget = null;
+
         // Render config widgets with transformed matrix
         for (ConfigEntryWidget widget : configWidgets) {
             widget.render(context, mouseX, adjustedMouseY, delta);
+
+            // Check if this widget is hovered (for tooltip later)
+            if (widget.isMouseOver(mouseX, adjustedMouseY)) {
+                this.hoveredWidget = widget;
+            }
         }
 
         // Pop matrix to restore original transformation
@@ -223,12 +232,31 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
 
         context.disableScissor();
 
+        // Render tooltips AFTER matrix pop (at real screen coordinates)
+        if (this.hoveredWidget != null && mouseY >= listTop && mouseY < listBottom) {
+            this.hoveredWidget.renderTooltip(context, mouseX, mouseY);
+        }
+
         // Render other widgets (search, buttons, tabs) - not affected by scroll
         super.render(context, mouseX, mouseY, delta);
     }
 
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
+        // If editing hotkey, any click finishes editing
+        if (isEditingHotkey()) {
+            // Let the editing widget handle the click
+            double adjustedMouseY = click.y() + scrollOffset;
+            Click adjustedClick = new Click(click.x(), adjustedMouseY, click.buttonInfo());
+
+            for (ConfigEntryWidget widget : configWidgets) {
+                if (widget.isEditingHotkey()) {
+                    widget.finishHotkeyEdit();
+                    return true;
+                }
+            }
+        }
+
         // Calculate adjusted mouse position for scrolled content
         double adjustedMouseY = click.y() + scrollOffset;
 
