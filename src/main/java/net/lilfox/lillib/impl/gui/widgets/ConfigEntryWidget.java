@@ -252,16 +252,9 @@ public class ConfigEntryWidget implements Drawable, Element {
         // Calculate adjusted Y for checking hover (account for scroll)
         int adjustedMouseY = mouseY + scrollOffset;
 
-        System.out.println("renderTooltip called - mouseX: " + mouseX + ", mouseY: " + mouseY + ", adjustedMouseY: " + adjustedMouseY);
-        System.out.println("Widget bounds - x: " + x + ", y: " + y + ", width: " + width + ", height: " + height);
-        System.out.println("isMouseOverName: " + isMouseOverName(mouseX, adjustedMouseY));
-
         // Draw description tooltip on hover over name area
         String description = config.getDescription();
-        System.out.println("Description: '" + description + "', isEmpty: " + description.isEmpty());
-
         if (!description.isEmpty() && isMouseOverName(mouseX, adjustedMouseY)) {
-            System.out.println("Drawing tooltip!");
             context.drawTooltip(textRenderer, Text.literal(description), mouseX, mouseY);
         }
 

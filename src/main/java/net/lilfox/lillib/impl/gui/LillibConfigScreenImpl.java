@@ -234,7 +234,6 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
 
         // Render tooltips AFTER matrix pop (at real screen coordinates)
         if (this.hoveredWidget != null && mouseY >= listTop && mouseY < listBottom) {
-            System.out.println("Hovered widget: " + this.hoveredWidget);
             this.hoveredWidget.renderTooltip(context, mouseX, mouseY, scrollOffset);
         }
 
