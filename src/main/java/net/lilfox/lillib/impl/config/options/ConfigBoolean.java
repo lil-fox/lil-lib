@@ -7,7 +7,7 @@ import net.lilfox.lillib.api.config.IConfigBoolean;
  * Implementation of boolean configuration options.
  * <p>
  * This class contains code adapted from malilib by maruohon.
- * Original source: https://github.com/sakura-ryoko/malilib
+ * Original source: <a href="https://github.com/sakura-ryoko/malilib">...</a>
  * Licensed under the GNU Lesser General Public License v3.0
  *
  * <p><b>Updated for factory pattern:</b>
@@ -118,10 +118,7 @@ public class ConfigBoolean extends ConfigBase implements IConfigBoolean {
         if (value != defaultValue) {
             return true;
         }
-        if (hasEffect && showEffect != defaultShowEffect) {
-            return true;
-        }
-        return false;
+        return hasEffect && showEffect != defaultShowEffect;
     }
 
     @Override

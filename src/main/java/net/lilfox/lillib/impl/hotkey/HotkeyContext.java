@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  * Determines the context in which hotkeys can be processed.
  * <p>
  * This class contains code adapted from malilib by maruohon.
- * Original source: https://github.com/sakura-ryoko/malilib
+ * Original source: <a href="https://github.com/sakura-ryoko/malilib">...</a>
  * Licensed under the GNU Lesser General Public License v3.0
  *
  * <p><b>Fixed version with debug logging</b>
@@ -63,8 +63,7 @@ public class HotkeyContext {
         Screen screen = client.currentScreen;
 
         // If editing a hotkey in config GUI, block all other hotkeys
-        if (screen instanceof LillibConfigScreen) {
-            LillibConfigScreen configScreen = (LillibConfigScreen) screen;
+        if (screen instanceof LillibConfigScreen configScreen) {
             if (configScreen.isEditingHotkey()) {
                 LOGGER.debug("Hotkeys blocked: editing hotkey in config GUI");
                 return false;

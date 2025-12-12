@@ -18,7 +18,7 @@ import java.util.*;
  * Implementation of the configuration screen.
  * <p>
  * This class contains code adapted from malilib by maruohon.
- * Original source: https://github.com/sakura-ryoko/malilib
+ * Original source: <a href="https://github.com/sakura-ryoko/malilib">...</a>
  * Licensed under the GNU Lesser General Public License v3.0
  *
  * <p><b>Matrix transformation approach:</b>
@@ -40,7 +40,6 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
     private final int entryHeight = 24;
     private final int listTop = 60;
     private int listHeight;
-    private ConfigEntryWidget hoveredWidget;
 
     // Layout constants
     private static final int LEFT_MARGIN = 10;
@@ -59,7 +58,7 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
         this.configsByCategory = ConfigManager.getInstance().getConfigsByCategory(modId);
         this.categoryNames = new ArrayList<>(configsByCategory.keySet());
         Collections.sort(this.categoryNames);
-        this.currentCategory = categoryNames.isEmpty() ? null : categoryNames.get(0);
+        this.currentCategory = categoryNames.isEmpty() ? null : categoryNames.getFirst();
         this.configWidgets = new ArrayList<>();
         this.tabButtons = new ArrayList<>();
         this.scrollOffset = 0;
@@ -109,9 +108,7 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
         int currentX = LEFT_MARGIN;
         int tabY = 35;
 
-        for (int i = 0; i < categoryNames.size(); i++) {
-            String category = categoryNames.get(i);
-
+        for (String category : categoryNames) {
             // Create button with proper text
             Text buttonText = Text.literal(LocalizationHelper.getCategoryName(modId, category));
 
@@ -215,7 +212,7 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
         context.getMatrices().translate(0, -scrollOffset);
 
         // Track hovered widget for tooltip rendering
-        this.hoveredWidget = null;
+        ConfigEntryWidget hoveredWidget = null;
 
         // Render config widgets with transformed matrix
         for (ConfigEntryWidget widget : configWidgets) {
@@ -223,7 +220,7 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
 
             // Check if this widget is hovered (for tooltip later)
             if (widget.isMouseOver(mouseX, adjustedMouseY)) {
-                this.hoveredWidget = widget;
+                hoveredWidget = widget;
             }
         }
 
@@ -233,8 +230,8 @@ public class LillibConfigScreenImpl extends LillibConfigScreen {
         context.disableScissor();
 
         // Render tooltips AFTER matrix pop (at real screen coordinates)
-        if (this.hoveredWidget != null && mouseY >= listTop && mouseY < listBottom) {
-            this.hoveredWidget.renderTooltip(context, mouseX, mouseY, scrollOffset);
+        if (hoveredWidget != null && mouseY >= listTop && mouseY < listBottom) {
+            hoveredWidget.renderTooltip(context, mouseX, mouseY, scrollOffset);
         }
 
         // Render other widgets (search, buttons, tabs) - not affected by scroll

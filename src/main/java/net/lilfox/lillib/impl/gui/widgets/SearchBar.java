@@ -1,7 +1,6 @@
 package net.lilfox.lillib.impl.gui.widgets;
 
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 import net.lilfox.lillib.impl.util.LocalizationHelper;
@@ -10,9 +9,9 @@ import net.lilfox.lillib.impl.util.LocalizationHelper;
  * Search bar widget for filtering configurations.
  * <p>
  * This class contains code adapted from malilib by maruohon.
- * Original source: https://github.com/sakura-ryoko/malilib
+ * Original source: <a href="https://github.com/sakura-ryoko/malilib">...</a>
  * Licensed under the GNU Lesser General Public License v3.0
- * 
+ *
  * @author lilfox
  * @since 1.0.0
  */

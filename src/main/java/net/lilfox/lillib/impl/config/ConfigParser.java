@@ -62,13 +62,11 @@ public class ConfigParser {
                 Object fieldValue = field.get(null);
 
                 // Field must be a config object
-                if (!(fieldValue instanceof IConfigBase)) {
+                if (!(fieldValue instanceof IConfigBase config)) {
                     LOGGER.warn("Field '{}' has @Config annotation but is not an IConfigBase instance: {}",
                             field.getName(), fieldValue.getClass().getName());
                     continue;
                 }
-
-                IConfigBase config = (IConfigBase) fieldValue;
 
                 // Apply metadata from annotation
                 String category = configAnnotation.category();
@@ -105,8 +103,7 @@ public class ConfigParser {
         }
 
         // Set category using the package-private setCategory method
-        if (config instanceof ConfigBase) {
-            ConfigBase configBase = (ConfigBase) config;
+        if (config instanceof ConfigBase configBase) {
             configBase.setCategory(category);
             LOGGER.debug("Set category '{}' for config '{}'", category, config.getName());
         } else {

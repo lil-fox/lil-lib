@@ -2,11 +2,9 @@ package net.lilfox.lillib.effect.impl;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.lilfox.lillib.api.config.IConfigBoolean;
-import net.lilfox.lillib.effect.impl.EffectRegistryImpl;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

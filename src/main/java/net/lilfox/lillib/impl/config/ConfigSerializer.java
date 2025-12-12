@@ -218,30 +218,25 @@ public class ConfigSerializer {
     private static JsonObject serializeConfig(IConfigBase config) {
         JsonObject obj = new JsonObject();
 
-        if (config instanceof IConfigBoolean) {
-            IConfigBoolean boolConfig = (IConfigBoolean) config;
+        if (config instanceof IConfigBoolean boolConfig) {
             obj.addProperty("value", boolConfig.getBooleanValue());
 
             if (boolConfig.hasEffect()) {
                 obj.addProperty("showEffect", boolConfig.getShowEffect());
             }
         }
-        else if (config instanceof IConfigInteger) {
-            IConfigInteger intConfig = (IConfigInteger) config;
+        else if (config instanceof IConfigInteger intConfig) {
             obj.addProperty("value", intConfig.getIntegerValue());
         }
-        else if (config instanceof IConfigDouble) {
-            IConfigDouble doubleConfig = (IConfigDouble) config;
+        else if (config instanceof IConfigDouble doubleConfig) {
             obj.addProperty("value", doubleConfig.getDoubleValue());
         }
-        else if (config instanceof IConfigString) {
-            IConfigString stringConfig = (IConfigString) config;
+        else if (config instanceof IConfigString stringConfig) {
             obj.addProperty("value", stringConfig.getStringValue());
         }
 
         // Add hotkey if present
-        if (config instanceof IConfigBooleanHotkeyed) {
-            IConfigBooleanHotkeyed hotkeyConfig = (IConfigBooleanHotkeyed) config;
+        if (config instanceof IConfigBooleanHotkeyed hotkeyConfig) {
             obj.addProperty("hotkey", hotkeyConfig.getHotkey());
         }
 
@@ -258,60 +253,59 @@ public class ConfigSerializer {
         try {
             LOGGER.debug("Deserializing config '{}' of type {}", config.getName(), config.getClass().getSimpleName());
 
-            if (config instanceof ConfigBoolean) {
-                ConfigBoolean boolConfig = (ConfigBoolean) config;
+            switch (config) {
+                case ConfigBoolean boolConfig -> {
 
-                if (obj.has("value")) {
-                    boolean value = obj.get("value").getAsBoolean();
-                    LOGGER.debug("  Setting boolean value: {} -> {}", boolConfig.getBooleanValue(), value);
-                    boolConfig.setBooleanValue(value);
-                } else {
-                    LOGGER.warn("  Missing 'value' field for boolean config");
+                    if (obj.has("value")) {
+                        boolean value = obj.get("value").getAsBoolean();
+                        LOGGER.debug("  Setting boolean value: {} -> {}", boolConfig.getBooleanValue(), value);
+                        boolConfig.setBooleanValue(value);
+                    } else {
+                        LOGGER.warn("  Missing 'value' field for boolean config");
+                    }
+
+                    if (obj.has("showEffect") && boolConfig.hasEffect()) {
+                        boolean showEffect = obj.get("showEffect").getAsBoolean();
+                        LOGGER.debug("  Setting showEffect: {} -> {}", boolConfig.getShowEffect(), showEffect);
+                        boolConfig.setShowEffect(showEffect);
+                    }
                 }
+                case ConfigInteger intConfig -> {
 
-                if (obj.has("showEffect") && boolConfig.hasEffect()) {
-                    boolean showEffect = obj.get("showEffect").getAsBoolean();
-                    LOGGER.debug("  Setting showEffect: {} -> {}", boolConfig.getShowEffect(), showEffect);
-                    boolConfig.setShowEffect(showEffect);
+                    if (obj.has("value")) {
+                        int value = obj.get("value").getAsInt();
+                        LOGGER.debug("  Setting integer value: {} -> {}", intConfig.getIntegerValue(), value);
+                        intConfig.setIntegerValue(value);
+                    } else {
+                        LOGGER.warn("  Missing 'value' field for integer config");
+                    }
                 }
-            }
-            else if (config instanceof ConfigInteger) {
-                ConfigInteger intConfig = (ConfigInteger) config;
+                case ConfigDouble doubleConfig -> {
 
-                if (obj.has("value")) {
-                    int value = obj.get("value").getAsInt();
-                    LOGGER.debug("  Setting integer value: {} -> {}", intConfig.getIntegerValue(), value);
-                    intConfig.setIntegerValue(value);
-                } else {
-                    LOGGER.warn("  Missing 'value' field for integer config");
+                    if (obj.has("value")) {
+                        double value = obj.get("value").getAsDouble();
+                        LOGGER.debug("  Setting double value: {} -> {}", doubleConfig.getDoubleValue(), value);
+                        doubleConfig.setDoubleValue(value);
+                    } else {
+                        LOGGER.warn("  Missing 'value' field for double config");
+                    }
                 }
-            }
-            else if (config instanceof ConfigDouble) {
-                ConfigDouble doubleConfig = (ConfigDouble) config;
+                case ConfigString stringConfig -> {
 
-                if (obj.has("value")) {
-                    double value = obj.get("value").getAsDouble();
-                    LOGGER.debug("  Setting double value: {} -> {}", doubleConfig.getDoubleValue(), value);
-                    doubleConfig.setDoubleValue(value);
-                } else {
-                    LOGGER.warn("  Missing 'value' field for double config");
+                    if (obj.has("value")) {
+                        String value = obj.get("value").getAsString();
+                        LOGGER.debug("  Setting string value: {} -> {}", stringConfig.getStringValue(), value);
+                        stringConfig.setStringValue(value);
+                    } else {
+                        LOGGER.warn("  Missing 'value' field for string config");
+                    }
                 }
-            }
-            else if (config instanceof ConfigString) {
-                ConfigString stringConfig = (ConfigString) config;
-
-                if (obj.has("value")) {
-                    String value = obj.get("value").getAsString();
-                    LOGGER.debug("  Setting string value: {} -> {}", stringConfig.getStringValue(), value);
-                    stringConfig.setStringValue(value);
-                } else {
-                    LOGGER.warn("  Missing 'value' field for string config");
+                default -> {
                 }
             }
 
             // Load hotkey if present
-            if (config instanceof ConfigBooleanHotkeyed) {
-                ConfigBooleanHotkeyed hotkeyConfig = (ConfigBooleanHotkeyed) config;
+            if (config instanceof ConfigBooleanHotkeyed hotkeyConfig) {
 
                 if (obj.has("hotkey")) {
                     String hotkey = obj.get("hotkey").getAsString();

@@ -2,7 +2,6 @@ package net.lilfox.lillib.impl.config;
 
 import net.lilfox.lillib.api.config.IConfigBase;
 import net.lilfox.lillib.api.config.IConfigBooleanHotkeyed;
-import net.lilfox.lillib.impl.config.options.ConfigBooleanHotkeyed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -10,9 +10,9 @@ import net.lilfox.lillib.api.config.IConfigInteger;
  * Slider widget for numeric configurations.
  * <p>
  * This class contains code adapted from malilib by maruohon.
- * Original source: https://github.com/sakura-ryoko/malilib
+ * Original source: <a href="https://github.com/sakura-ryoko/malilib">...</a>
  * Licensed under the GNU Lesser General Public License v3.0
- * 
+ *
  * @author lilfox
  * @since 1.0.0
  */

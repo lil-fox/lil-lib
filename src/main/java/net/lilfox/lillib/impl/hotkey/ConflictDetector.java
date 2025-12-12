@@ -140,8 +140,7 @@ public class ConflictDetector {
      * @return Formatted string "ModName > Category > ConfigName"
      */
     private static String formatConflict(IConfigHotkey config) {
-        if (config instanceof ConfigBooleanHotkeyed) {
-            ConfigBooleanHotkeyed cfg = (ConfigBooleanHotkeyed) config;
+        if (config instanceof ConfigBooleanHotkeyed cfg) {
             String modId = cfg.getModId();
             String category = cfg.getCategory();
             String name = cfg.getDisplayName();

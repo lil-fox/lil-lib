@@ -18,7 +18,7 @@ import java.util.List;
  * Widget representing a single configuration entry in the list.
  * <p>
  * This class contains code adapted from malilib by maruohon.
- * Original source: https://github.com/sakura-ryoko/malilib
+ * Original source: <a href="https://github.com/sakura-ryoko/malilib">...</a>
  * Licensed under the GNU Lesser General Public License v3.0
  *
  * <p><b>Fixed version:</b>
@@ -83,8 +83,7 @@ public class ConfigEntryWidget implements Drawable, Element {
         currentX -= BUTTON_SPACING;
 
         // Type-specific controls
-        if (config instanceof IConfigBooleanHotkeyed) {
-            IConfigBooleanHotkeyed boolHotkeyConfig = (IConfigBooleanHotkeyed) config;
+        if (config instanceof IConfigBooleanHotkeyed boolHotkeyConfig) {
 
             // 2. Eye button (if has effect)
             if (boolHotkeyConfig.hasEffect()) {
@@ -114,8 +113,7 @@ public class ConfigEntryWidget implements Drawable, Element {
             );
             widgets.add(boolWidget);
 
-        } else if (config instanceof IConfigBoolean) {
-            IConfigBoolean boolConfig = (IConfigBoolean) config;
+        } else if (config instanceof IConfigBoolean boolConfig) {
 
             // 2. Eye button (if has effect)
             if (boolConfig.hasEffect()) {
@@ -136,8 +134,7 @@ public class ConfigEntryWidget implements Drawable, Element {
             );
             widgets.add(boolWidget);
 
-        } else if (config instanceof IConfigInteger) {
-            IConfigInteger intConfig = (IConfigInteger) config;
+        } else if (config instanceof IConfigInteger intConfig) {
 
             if (intConfig.useSlider()) {
                 int sliderWidth = 120;
@@ -164,8 +161,7 @@ public class ConfigEntryWidget implements Drawable, Element {
                 widgets.add(textField);
             }
 
-        } else if (config instanceof IConfigDouble) {
-            IConfigDouble doubleConfig = (IConfigDouble) config;
+        } else if (config instanceof IConfigDouble doubleConfig) {
 
             if (doubleConfig.useSlider()) {
                 int sliderWidth = 120;
@@ -192,8 +188,7 @@ public class ConfigEntryWidget implements Drawable, Element {
                 widgets.add(textField);
             }
 
-        } else if (config instanceof IConfigString) {
-            IConfigString stringConfig = (IConfigString) config;
+        } else if (config instanceof IConfigString stringConfig) {
 
             int fieldWidth = 120;
             currentX -= fieldWidth;
@@ -228,7 +223,7 @@ public class ConfigEntryWidget implements Drawable, Element {
         // Draw config name on the left
         String displayName = config.getDisplayName();
         int nameY = y + (height - textRenderer.fontHeight) / 2;
-        context.drawText(textRenderer, displayName, x + 5, nameY, 0xFFFFFFFF, false);
+        context.drawText(textRenderer, displayName, x + 5, nameY, 0xFFFFFFFF, true);
 
         // Draw modified indicator next to name
         if (config.isModified()) {

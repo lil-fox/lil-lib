@@ -1,12 +1,10 @@
 package net.lilfox.lillib.impl.gui.widgets;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
+import net.lilfox.lillib.api.config.IConfigBoolean;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.lilfox.lillib.api.config.IConfigBoolean;
 
 /**
  * Widget for boolean configuration values.
@@ -14,9 +12,9 @@ import net.lilfox.lillib.api.config.IConfigBoolean;
  * Displays as a button with green "TRUE" or red "FALSE".
  * <p>
  * This class contains code adapted from malilib by maruohon.
- * Original source: https://github.com/sakura-ryoko/malilib
+ * Original source: <a href="https://github.com/sakura-ryoko/malilib">...</a>
  * Licensed under the GNU Lesser General Public License v3.0
- * 
+ *
  * @author lilfox
  * @since 1.0.0
  */
