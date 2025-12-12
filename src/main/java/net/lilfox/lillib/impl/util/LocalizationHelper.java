@@ -27,9 +27,9 @@ public class LocalizationHelper {
         String translation = I18n.translate(key);
 
         // If translation equals key, it wasn't found - return key for debugging
-//        if (translation.equals(key)) {
-//            return key;
-//        }
+        if (translation.equals(key)) {
+            return configName;
+        }
 
         return translation;
     }
@@ -50,7 +50,7 @@ public class LocalizationHelper {
 
         // If translation not found, fall back to display name
         if (translation.equals(key)) {
-            return getConfigName(modId, configName);
+            return key;
         }
 
         return translation;
