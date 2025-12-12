@@ -44,34 +44,34 @@ public class Configs {
             factory.createBoolean("coolFeature");
     @Config(category = "test")
     public static final ConfigBoolean coolFeature1 =
-            factory.createBoolean("coolFeature");
+            factory.createBoolean("coolFeature1");
     @Config(category = "test")
     public static final ConfigBoolean coolFeature2 =
-            factory.createBoolean("coolFeature");
+            factory.createBoolean("coolFeature2");
     @Config(category = "test")
     public static final ConfigBoolean coolFeature3 =
-            factory.createBoolean("coolFeature");
+            factory.createBoolean("coolFeature3");
     @Config(category = "test")
     public static final ConfigBoolean coolFeature4 =
-            factory.createBoolean("coolFeature");
+            factory.createBoolean("coolFeature4");
     @Config(category = "test")
     public static final ConfigBoolean coolFeature5 =
-            factory.createBoolean("coolFeature");
+            factory.createBoolean("coolFeature5");
     @Config(category = "test")
     public static final ConfigBoolean coolFeature6 =
-            factory.createBoolean("coolFeature");
+            factory.createBoolean("coolFeature6");
     @Config(category = "test")
     public static final ConfigBoolean coolFeature7 =
-            factory.createBoolean("coolFeature");
+            factory.createBoolean("coolFeature7");
     @Config(category = "test")
     public static final ConfigBoolean coolFeature8 =
-            factory.createBoolean("coolFeature");
+            factory.createBoolean("coolFeature8");
     @Config(category = "test")
     public static final ConfigBoolean coolFeature9 =
-            factory.createBoolean("coolFeature");
+            factory.createBoolean("coolFeature9");
     @Config(category = "test")
     public static final ConfigBoolean coolFeature10 =
-            factory.createBoolean("coolFeature");
+            factory.createBoolean("coolFeature10");
 
     /**
      * Another hotkeyed boolean config with no default hotkey.

@@ -10,8 +10,9 @@ import net.lilfox.lillib.impl.util.LocalizationHelper;
  * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
  *
- * <p><b>Fixed version:</b> Category field is now mutable to allow ConfigParser
- * to set it from @Config annotation.
+ * <p><b>Fixed version:</b>
+ * - Category field is now mutable to allow ConfigParser to set it from @Config annotation
+ * - Added loading flag to prevent auto-save during deserialization
  *
  * @author lilfox
  * @since 1.0.0
@@ -20,6 +21,12 @@ public abstract class ConfigBase implements IConfigBase {
     protected final String name;
     protected String category;  // NOT final - can be overridden by ConfigParser
     protected String modId;
+
+    /**
+     * Flag to prevent auto-save during config loading.
+     * When true, onValueChanged() will not trigger save.
+     */
+    private boolean isLoading = false;
 
     /**
      * Creates a new configuration base.
@@ -91,12 +98,33 @@ public abstract class ConfigBase implements IConfigBase {
     /**
      * Notifies the config manager that this configuration has changed.
      * <p>
-     * This triggers automatic saving to file.
+     * This triggers automatic saving to file, unless we are currently loading.
      */
     protected void onValueChanged() {
-        if (modId != null) {
+        // Don't auto-save if we're currently loading from file
+        if (!isLoading && modId != null) {
             net.lilfox.lillib.impl.config.ConfigManager.getInstance().saveConfig(modId);
         }
+    }
+
+    /**
+     * Sets the loading flag to prevent auto-save during deserialization.
+     * <p>
+     * This method is package-private and should only be called by ConfigSerializer.
+     *
+     * @param loading Whether config is being loaded from file
+     */
+    public void setLoading(boolean loading) {
+        this.isLoading = loading;
+    }
+
+    /**
+     * Checks if config is currently being loaded.
+     *
+     * @return true if loading from file
+     */
+    public boolean isLoading() {
+        return isLoading;
     }
 
     @Override

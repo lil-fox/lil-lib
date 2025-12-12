@@ -20,7 +20,9 @@ import java.util.Map;
  * Configurations are organized by category in a nested JSON structure.
  * Only modified configurations are saved to reduce file size.
  *
- * <p>This version includes extensive debug logging to diagnose save/load issues.
+ * <p><b>Fixed version:</b>
+ * - Sets loading flag before deserialization to prevent auto-save
+ * - Clears loading flag after deserialization
  *
  * @author lilfox
  * @since 1.0.0
@@ -180,8 +182,20 @@ public class ConfigSerializer {
                     JsonObject configObject = configEntry.getValue().getAsJsonObject();
                     LOGGER.debug("Loading config '{}.{}' from: {}", category, configName, configObject);
 
-                    deserializeConfig(config, configObject);
-                    loadedCount++;
+                    // CRITICAL: Set loading flag before deserialization
+                    if (config instanceof ConfigBase) {
+                        ((ConfigBase) config).setLoading(true);
+                    }
+
+                    try {
+                        deserializeConfig(config, configObject);
+                        loadedCount++;
+                    } finally {
+                        // CRITICAL: Clear loading flag after deserialization
+                        if (config instanceof ConfigBase) {
+                            ((ConfigBase) config).setLoading(false);
+                        }
+                    }
                 }
             }
 
