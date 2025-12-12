@@ -246,10 +246,11 @@ public class ConfigEntryWidget implements Drawable, Element {
      * @param context The draw context (without scroll transformation)
      * @param mouseX The real mouse X position
      * @param mouseY The real mouse Y position
+     * @param scrollOffset The current scroll offset
      */
-    public void renderTooltip(DrawContext context, int mouseX, int mouseY) {
+    public void renderTooltip(DrawContext context, int mouseX, int mouseY, int scrollOffset) {
         // Calculate adjusted Y for checking hover (account for scroll)
-        int adjustedMouseY = mouseY + (y - (int)context.getMatrices().peek().getPositionMatrix().getTranslationVector().y);
+        int adjustedMouseY = mouseY + scrollOffset;
 
         // Draw description tooltip on hover over name area
         String description = config.getDescription();
