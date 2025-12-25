@@ -7,12 +7,15 @@ import net.lilfox.lillib.api.config.IConfigBoolean;
  * Implementation of boolean configuration options.
  * <p>
  * This class contains code adapted from malilib by maruohon.
- * Original source: <a href="https://github.com/sakura-ryoko/malilib">...</a>
+ * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
  *
  * <p><b>Updated for factory pattern:</b>
  * Constructor now properly handles empty category for factory-created configs.
  * Category can be overridden by ConfigParser when processing @Config annotations.
+ *
+ * <p><b>Fixed version:</b>
+ * - setShowEffect() only triggers onValueChanged() if value actually changed
  *
  * @author lilfox
  * @since 1.0.0
@@ -95,12 +98,13 @@ public class ConfigBoolean extends ConfigBase implements IConfigBoolean {
 
     @Override
     public void setShowEffect(boolean show) {
-        boolean oldShow = this.showEffect;
-        this.showEffect = show;
-
-        if (oldShow != show) {
-            onValueChanged();
+        // CRITICAL FIX: Only update if value actually changed
+        if (this.showEffect == show) {
+            return;
         }
+
+        this.showEffect = show;
+        onValueChanged();
     }
 
     @Override
@@ -118,6 +122,7 @@ public class ConfigBoolean extends ConfigBase implements IConfigBoolean {
         if (value != defaultValue) {
             return true;
         }
+        System.out.println("hasEffect && showEffect != defaultShowEffect === " + (hasEffect && showEffect != defaultShowEffect));
         return hasEffect && showEffect != defaultShowEffect;
     }
 

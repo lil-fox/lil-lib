@@ -13,8 +13,12 @@ import org.slf4j.LoggerFactory;
  * enabling hotkey detection and conflict resolution without manual registration.
  * <p>
  * This class contains code adapted from malilib by maruohon.
- * Original source: <a href="https://github.com/sakura-ryoko/malilib">...</a>
+ * Original source: https://github.com/sakura-ryoko/malilib
  * Licensed under the GNU Lesser General Public License v3.0
+ *
+ * <p><b>Fixed version:</b>
+ * - setHotkey() only triggers onValueChanged() if hotkey actually changed
+ * - Prevents unnecessary re-registration during loading
  *
  * @author lilfox
  * @since 1.0.0
@@ -74,23 +78,32 @@ public class ConfigBooleanHotkeyed extends ConfigBoolean implements IConfigBoole
 
     @Override
     public void setHotkey(String hotkey) {
-        String oldHotkey = this.hotkey;
-        this.hotkey = hotkey != null ? hotkey : "";
+        String newHotkey = hotkey != null ? hotkey : "";
 
-        if (!oldHotkey.equals(this.hotkey)) {
-            // Unregister old hotkey
-            if (!oldHotkey.isEmpty()) {
-                ConflictDetector.unregisterHotkey(this);
-                KeybindManager.getInstance().updateHotkey(this, oldHotkey);
-            }
-
-            // Register new hotkey
-            if (!this.hotkey.isEmpty()) {
-                registerHotkey();
-            }
-
-            onValueChanged();
+        // CRITICAL FIX: Only update if hotkey actually changed
+        if (this.hotkey.equals(newHotkey)) {
+            LOGGER.trace("Hotkey unchanged for config '{}', skipping update", this.getName());
+            return;
         }
+
+        String oldHotkey = this.hotkey;
+        this.hotkey = newHotkey;
+
+        // Unregister old hotkey
+        if (!oldHotkey.isEmpty()) {
+            ConflictDetector.unregisterHotkey(this);
+            KeybindManager.getInstance().updateHotkey(this, oldHotkey);
+        }
+
+        // Register new hotkey
+        if (!this.hotkey.isEmpty()) {
+            registerHotkey();
+        }
+
+        LOGGER.debug("Hotkey changed for config '{}': '{}' -> '{}'", this.getName(), oldHotkey, this.hotkey);
+
+        // Only trigger onValueChanged if hotkey actually changed
+        onValueChanged();
     }
 
     @Override
@@ -158,10 +171,11 @@ public class ConfigBooleanHotkeyed extends ConfigBoolean implements IConfigBoole
 
     @Override
     public boolean isModified() {
-        if (super.isModified()) {
-            return true;
-        }
-        return !hotkey.equals(defaultHotkey);
+//        if (super.isModified()) {
+//            return true;
+//        }
+        System.out.println("super.isModified() || !hotkey.equals(defaultHotkey) === " + (super.isModified() || !hotkey.equals(defaultHotkey)));
+        return super.isModified() || !hotkey.equals(defaultHotkey);
     }
 
     @Override
